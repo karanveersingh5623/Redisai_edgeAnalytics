@@ -69,7 +69,8 @@ if __name__ == '__main__':
     print('Loading gear - ', end='')
     with open('gear.py', 'rb') as f:
         gear = f.read()
-        res = conn.execute_command('RG.PYEXECUTE', gear)
+        #res = conn.execute_command('RG.PYEXECUTE', '[UNBLOCKING]', gear)
+        res = conn.execute_command('RG.PYEXECUTE', gear, 'REQUIREMENTS', 'numpy==1.16.3', 'opencv-python==4.0.1.23', 'Pillow==6.2.2')
         print(res)
 
     # Lastly, set a key that indicates initialization has been performed
