@@ -123,7 +123,7 @@ def runYolo(x):
     # log('read')
 
     # Read the image from the stream's message
-    buf = io.BytesIO(x['image'])
+    buf = io.BytesIO(x['value']['image'])
     pil_image = Image.open(buf)
     numpy_img = np.array(pil_image)
     prf.add('read')
@@ -147,7 +147,7 @@ def runYolo(x):
 
     # log('script')
     # The model's output is processed with a PyTorch script for non maxima suppression
-    scriptRunner = redisAI.createScriptRunner('yolo:script', 'boxes_from_tf')
+    scriptRunner = redisAI.createScriptRunner('model', 'boxes_from_tf')
     redisAI.scriptRunnerAddInput(scriptRunner, model_output)
     redisAI.scriptRunnerAddOutput(scriptRunner)
     script_reply = redisAI.scriptRunnerRun(scriptRunner)
@@ -155,8 +155,8 @@ def runYolo(x):
 
     # log('boxes')
     # The script outputs bounding boxes
-    shape = redisAI.tensorGetDims(script_reply)
-    buf = redisAI.tensorGetDataAsBlob(script_reply)
+    shape = redisAI.tensorGetDims(script_reply[0])
+    buf = redisAI.tensorGetDataAsBlob(script_reply[0])
     boxes = np.frombuffer(buf, dtype=np.float32).reshape(shape)
 
     # Iterate boxes to extract the people

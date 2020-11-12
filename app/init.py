@@ -41,7 +41,7 @@ if __name__ == '__main__':
     with open('yolo_boxes.py', 'rb') as f:
         script = f.read()
         #res = conn.execute_command('AI.SCRIPTSET', 'yolo:script', args.device, script)
-        res = conn.execute_command('AI.SCRIPTSET', 'boxes_from_tf', args.device, 'TAG', 'yolo:script', 'SOURCE', script)
+        res = conn.execute_command('AI.SCRIPTSET', 'model', args.device, 'TAG', 'yolo:script', 'SOURCE', script)
         print(res)
 
     print('Creating timeseries keys and downsampling rules - ', end='')
