@@ -91,7 +91,8 @@ prf = Profiler()
 def downsampleStream(x):
     ''' Drops input frames to match FPS '''
     global _mspf, _next_ts
-    execute('TS.INCRBY', 'camera:0:in_fps', 1, 'RESET', 1)  # Store the input fps count
+    #print(x['key'])
+    execute('TS.INCRBY', str(x['key']) + ':in_fps', 1, 'RESET', 1)  # Store the input fps count
     ts, _ = map(int, str(x['id']).split('-'))         # Extract the timestamp part from the message ID
     sample_it = _next_ts <= ts
     if sample_it:                                           # Drop frames until the next timestamp is in the present/past
@@ -189,14 +190,13 @@ def storeResults(x):
     global _mspf, prf
     ref_id, people, boxes= x[0], int(x[1]), x[2]
     ref_msec = int(str(ref_id).split('-')[0])
-
     # Store the output in its own stream
-    res_id = execute('XADD', 'camera:0:yolo', 'MAXLEN', '~', 1000, '*', 'ref', ref_id, 'boxes', boxes, 'people', people)
+    res_id = execute('XADD', 'x[0]:yolo', 'MAXLEN', '~', 1000, '*', 'ref', ref_id, 'boxes', boxes, 'people', people)
 
     # Add a sample to the output people and fps timeseries
     res_msec = int(str(res_id).split('-')[0])
-    execute('TS.ADD', 'camera:0:people', ref_msec, people)
-    execute('TS.INCRBY', 'camera:0:out_fps', 1, 'RESET', 1)
+    execute('TS.ADD', 'x[0]:people', ref_msec, people)
+    execute('TS.INCRBY', 'x[0]:out_fps', 1, 'RESET', 1)
 
     # Adjust mspf to the moving average duration
     total_duration = res_msec - ref_msec
@@ -207,7 +207,7 @@ def storeResults(x):
     # Record profiler steps
     for name in prf.names:
         current = prf.data[name].current
-        execute('TS.ADD', 'camera:0:prf_{}'.format(name), ref_msec, current)
+        execute('TS.ADD', 'x[0]:prf_{}'.format(name), ref_msec, current)
 
     prf.add('store')
     # Make an arithmophilial homage to Count von Count for storage in the execution log
@@ -225,4 +225,4 @@ gb = GearsBuilder('StreamReader')
 gb.filter(downsampleStream)  # Filter out high frame rate
 gb.map(runYolo)              # Run the model
 gb.map(storeResults)         # Store the results
-gb.register('camera:0')
+gb.register('camera:*')
