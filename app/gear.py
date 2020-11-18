@@ -191,12 +191,12 @@ def storeResults(x):
     ref_id, people, boxes= x[0], int(x[1]), x[2]
     ref_msec = int(str(ref_id).split('-')[0])
     # Store the output in its own stream
-    res_id = execute('XADD', 'x[0]:yolo', 'MAXLEN', '~', 1000, '*', 'ref', ref_id, 'boxes', boxes, 'people', people)
+    res_id = execute('XADD', str(x[0]) + ':yolo', 'MAXLEN', '~', 1000, '*', 'ref', ref_id, 'boxes', boxes, 'people', people)
 
     # Add a sample to the output people and fps timeseries
     res_msec = int(str(res_id).split('-')[0])
-    execute('TS.ADD', 'x[0]:people', ref_msec, people)
-    execute('TS.INCRBY', 'x[0]:out_fps', 1, 'RESET', 1)
+    execute('TS.ADD', str(x[0]) + ':people', ref_msec, people)
+    execute('TS.INCRBY', str(x[0]) + ':out_fps', 1, 'RESET', 1)
 
     # Adjust mspf to the moving average duration
     total_duration = res_msec - ref_msec
@@ -207,7 +207,7 @@ def storeResults(x):
     # Record profiler steps
     for name in prf.names:
         current = prf.data[name].current
-        execute('TS.ADD', 'x[0]:prf_{}'.format(name), ref_msec, current)
+        execute('TS.ADD', str(x[0]) + ':prf_{}'.format(name), ref_msec, current)
 
     prf.add('store')
     # Make an arithmophilial homage to Count von Count for storage in the execution log
